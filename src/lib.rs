@@ -17,7 +17,7 @@ pub struct TestClient {
 }
 
 impl TestClient {
-    pub(crate) fn new<S, ResBody>(svc: S) -> Self
+    pub fn new<S, ResBody>(svc: S) -> Self
     where
         S: Service<Request<Body>, Response = http::Response<ResBody>>
         + Clone
@@ -48,21 +48,21 @@ impl TestClient {
     }
 
     #[allow(dead_code)]
-    pub(crate) fn get(&self, url: &str) -> RequestBuilder {
+    pub fn get(&self, url: &str) -> RequestBuilder {
         RequestBuilder {
             builder: self.client.get(format!("http://{}{}", self.addr, url)),
         }
     }
 
     #[allow(dead_code)]
-    pub(crate) fn head(&self, url: &str) -> RequestBuilder {
+    pub fn head(&self, url: &str) -> RequestBuilder {
         RequestBuilder {
             builder: self.client.head(format!("http://{}{}", self.addr, url)),
         }
     }
 
     #[allow(dead_code)]
-    pub(crate) fn post(&self, url: &str) -> RequestBuilder {
+    pub fn post(&self, url: &str) -> RequestBuilder {
         RequestBuilder {
             builder: self.client.post(format!("http://{}{}", self.addr, url)),
         }
@@ -70,14 +70,14 @@ impl TestClient {
     }
 
     #[allow(dead_code)]
-    pub(crate) fn put(&self, url: &str) -> RequestBuilder {
+    pub fn put(&self, url: &str) -> RequestBuilder {
         RequestBuilder {
             builder: self.client.put(format!("http://{}{}", self.addr, url)),
         }
     }
 
     #[allow(dead_code)]
-    pub(crate) fn patch(&self, url: &str) -> RequestBuilder {
+    pub fn patch(&self, url: &str) -> RequestBuilder {
         RequestBuilder {
             builder: self.client.patch(format!("http://{}{}", self.addr, url)),
         }
@@ -85,26 +85,26 @@ impl TestClient {
 }
 
 #[allow(dead_code)]
-pub(crate) struct RequestBuilder {
+pub struct RequestBuilder {
     builder: reqwest::RequestBuilder,
 }
 
 impl RequestBuilder {
     #[allow(dead_code)]
-    pub(crate) async fn send(self) -> TestResponse {
+    pub async fn send(self) -> TestResponse {
         TestResponse {
             response: self.builder.send().await.unwrap(),
         }
     }
 
     #[allow(dead_code)]
-    pub(crate) fn body(mut self, body: impl Into<reqwest::Body>) -> Self {
+    pub fn body(mut self, body: impl Into<reqwest::Body>) -> Self {
         self.builder = self.builder.body(body);
         self
     }
 
     #[allow(dead_code)]
-    pub(crate) fn json<T>(mut self, json: &T) -> Self
+    pub fn json<T>(mut self, json: &T) -> Self
     where
         T: serde::Serialize,
     {
@@ -113,7 +113,7 @@ impl RequestBuilder {
     }
 
     #[allow(dead_code)]
-    pub(crate) fn header<K, V>(mut self, key: K, value: V) -> Self
+    pub fn header<K, V>(mut self, key: K, value: V) -> Self
     where
         HeaderName: TryFrom<K>,
     <HeaderName as TryFrom<K>>::Error: Into<http::Error>,
@@ -125,25 +125,25 @@ impl RequestBuilder {
     }
 
     #[allow(dead_code)]
-    pub(crate) fn multipart(mut self, form: reqwest::multipart::Form) -> Self {
+    pub fn multipart(mut self, form: reqwest::multipart::Form) -> Self {
         self.builder = self.builder.multipart(form);
         self
     }
 }
 
 #[allow(dead_code)]
-pub(crate) struct TestResponse {
+pub struct TestResponse {
     response: reqwest::Response,
 }
 
 impl TestResponse {
     #[allow(dead_code)]
-    pub(crate) async fn text(self) -> String {
+    pub async fn text(self) -> String {
         self.response.text().await.unwrap()
     }
 
     #[allow(dead_code)]
-    pub(crate) async fn json<T>(self) -> T
+    pub async fn json<T>(self) -> T
     where
         T: serde::de::DeserializeOwned,
     {
@@ -151,22 +151,22 @@ impl TestResponse {
     }
 
     #[allow(dead_code)]
-    pub(crate) fn status(&self) -> StatusCode {
+    pub fn status(&self) -> StatusCode {
         self.response.status()
     }
 
     #[allow(dead_code)]
-    pub(crate) fn headers(&self) -> &http::HeaderMap {
+    pub fn headers(&self) -> &http::HeaderMap {
         self.response.headers()
     }
 
     #[allow(dead_code)]
-    pub(crate) async fn chunk(&mut self) -> Option<Bytes> {
+    pub async fn chunk(&mut self) -> Option<Bytes> {
         self.response.chunk().await.unwrap()
     }
 
     #[allow(dead_code)]
-    pub(crate) async fn chunk_text(&mut self) -> Option<String> {
+    pub async fn chunk_text(&mut self) -> Option<String> {
         let chunk = self.chunk().await?;
         Some(String::from_utf8(chunk.to_vec()).unwrap())
     }
