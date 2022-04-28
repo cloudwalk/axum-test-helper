@@ -13,8 +13,12 @@ More information about this crate can be found in the [crate documentation][docs
 ## Usage example
 
 ```rust
+use axum::Router;
+use axum::http::StatusCode;
+use axum_test_helper::TestClient;
+
 let app = Router::new().route("/", get(|| async {}));
-let client = super::TestClient::new(app);
+let client = TestClient::new(app);
 let res = client.get("/").send().await;
 assert_eq!(res.status(), StatusCode::OK);
 ```
@@ -23,11 +27,6 @@ You can find examples like this in
 the [example directory][examples].
 
 See the [crate documentation][docs] for way more examples.
-
-## Examples
-
-The [examples] folder contains various examples of how to use `axum`. The
-[docs] also provide lots of code snippets and examples. For full-fledged examples, check out community-maintained [showcases] or [tutorials].
 
 ## License
 
