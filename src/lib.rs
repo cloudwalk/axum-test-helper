@@ -66,7 +66,6 @@ impl TestClient {
         RequestBuilder {
             builder: self.client.post(format!("http://{}{}", self.addr, url)),
         }
-        .header("Content-Type", "application/json")
     }
 
     #[allow(dead_code)]
