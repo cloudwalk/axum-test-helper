@@ -12,12 +12,24 @@ More information about this crate can be found in the [crate documentation][docs
 
 ## Usage example
 
+Add this crate as a dev-dependency:
+
+```
+[dev-dependencies]
+axum-test-helper = "0.1.1"
+```
+
+Use the TestClient on your own Router:
+
 ```rust
 use axum::Router;
 use axum::http::StatusCode;
 use axum_test_helper::TestClient;
 
+// you can replace this Router with your own app
 let app = Router::new().route("/", get(|| async {}));
+
+// initiate the TestClient with the previous declared Router
 let client = TestClient::new(app);
 let res = client.get("/").send().await;
 assert_eq!(res.status(), StatusCode::OK);
