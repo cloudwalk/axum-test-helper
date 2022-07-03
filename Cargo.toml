@@ -1,6 +1,6 @@
 [package]
 name = "axum-test-helper"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 categories = ["axum", "test", "web-testing"]
 description = "Extra utilities for axum"
@@ -23,7 +23,6 @@ tower-service = "0.3"
 serde = { version = "1.0.136", features = ["derive"] }
 tokio = { version = "1" }
 hyper = "0.14.14"
-
 
 [dev-dependencies]
 tokio = { version = "1", features = ["full"] }
