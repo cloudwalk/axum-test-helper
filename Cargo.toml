@@ -14,7 +14,7 @@ repository = "https://github.com/cloudwalk/axum-test-helper"
 
 [dependencies]
 axum = "0.5"
-reqwest = { version = "0.11", features = ["json", "stream", "multipart"] }
+reqwest = { version = "0.11", features = ["json", "stream", "multipart"], default-features = false }
 http = "0.2.5"
 http-body = "0.4.4"
 bytes = "1.0"
