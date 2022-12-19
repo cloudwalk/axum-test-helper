@@ -16,7 +16,7 @@ Add this crate as a dev-dependency:
 
 ```
 [dev-dependencies]
-axum-test-helper = "0.*"
+axum-test-helper = "0.*" # alternatively specify the version as "0.2.0"
 ```
 
 Use the TestClient on your own Router:
