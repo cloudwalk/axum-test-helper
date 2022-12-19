@@ -143,6 +143,11 @@ impl TestResponse {
     pub async fn text(self) -> String {
         self.response.text().await.unwrap()
     }
+    
+    #[allow(dead_code)]
+    pub async fn bytes(self) -> Bytes {
+        self.response.bytes().await.unwrap()
+    }
 
     #[allow(dead_code)]
     pub async fn json<T>(self) -> T
