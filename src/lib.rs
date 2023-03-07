@@ -43,42 +43,36 @@ impl TestClient {
         TestClient { client, addr }
     }
 
-    #[allow(dead_code)]
     pub fn get(&self, url: &str) -> RequestBuilder {
         RequestBuilder {
             builder: self.client.get(format!("http://{}{}", self.addr, url)),
         }
     }
 
-    #[allow(dead_code)]
     pub fn head(&self, url: &str) -> RequestBuilder {
         RequestBuilder {
             builder: self.client.head(format!("http://{}{}", self.addr, url)),
         }
     }
 
-    #[allow(dead_code)]
     pub fn post(&self, url: &str) -> RequestBuilder {
         RequestBuilder {
             builder: self.client.post(format!("http://{}{}", self.addr, url)),
         }
     }
 
-    #[allow(dead_code)]
     pub fn put(&self, url: &str) -> RequestBuilder {
         RequestBuilder {
             builder: self.client.put(format!("http://{}{}", self.addr, url)),
         }
     }
 
-    #[allow(dead_code)]
     pub fn patch(&self, url: &str) -> RequestBuilder {
         RequestBuilder {
             builder: self.client.patch(format!("http://{}{}", self.addr, url)),
         }
     }
 
-    #[allow(dead_code)]
     pub fn delete(&self, url: &str) -> RequestBuilder {
         RequestBuilder {
             builder: self.client.delete(format!("http://{}{}", self.addr, url)),
@@ -86,26 +80,22 @@ impl TestClient {
     }
 }
 
-#[allow(dead_code)]
 pub struct RequestBuilder {
     builder: reqwest::RequestBuilder,
 }
 
 impl RequestBuilder {
-    #[allow(dead_code)]
     pub async fn send(self) -> TestResponse {
         TestResponse {
             response: self.builder.send().await.unwrap(),
         }
     }
 
-    #[allow(dead_code)]
     pub fn body(mut self, body: impl Into<reqwest::Body>) -> Self {
         self.builder = self.builder.body(body);
         self
     }
 
-    #[allow(dead_code)]
     pub fn json<T>(mut self, json: &T) -> Self
     where
         T: serde::Serialize,
@@ -114,7 +104,6 @@ impl RequestBuilder {
         self
     }
 
-    #[allow(dead_code)]
     pub fn header<K, V>(mut self, key: K, value: V) -> Self
     where
         HeaderName: TryFrom<K>,
@@ -126,30 +115,25 @@ impl RequestBuilder {
         self
     }
 
-    #[allow(dead_code)]
     pub fn multipart(mut self, form: reqwest::multipart::Form) -> Self {
         self.builder = self.builder.multipart(form);
         self
     }
 }
 
-#[allow(dead_code)]
 pub struct TestResponse {
     response: reqwest::Response,
 }
 
 impl TestResponse {
-    #[allow(dead_code)]
     pub async fn text(self) -> String {
         self.response.text().await.unwrap()
     }
-    
-    #[allow(dead_code)]
+
     pub async fn bytes(self) -> Bytes {
         self.response.bytes().await.unwrap()
     }
 
-    #[allow(dead_code)]
     pub async fn json<T>(self) -> T
     where
         T: serde::de::DeserializeOwned,
@@ -157,22 +141,18 @@ impl TestResponse {
         self.response.json().await.unwrap()
     }
 
-    #[allow(dead_code)]
     pub fn status(&self) -> StatusCode {
         self.response.status()
     }
 
-    #[allow(dead_code)]
     pub fn headers(&self) -> &http::HeaderMap {
         self.response.headers()
     }
 
-    #[allow(dead_code)]
     pub async fn chunk(&mut self) -> Option<Bytes> {
         self.response.chunk().await.unwrap()
     }
 
-    #[allow(dead_code)]
     pub async fn chunk_text(&mut self) -> Option<String> {
         let chunk = self.chunk().await?;
         Some(String::from_utf8(chunk.to_vec()).unwrap())
