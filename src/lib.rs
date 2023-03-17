@@ -121,6 +121,11 @@ impl RequestBuilder {
     }
 }
 
+/// A wrapper around [`reqwest::Response`] that provides common methods with internal `unwrap()`s.
+///
+/// This is conventient for tests where panics are what you want. For access to
+/// non-panicking versions or the complete `Response` API use `into_inner()` or
+/// `as_ref()`.
 pub struct TestResponse {
     response: reqwest::Response,
 }
@@ -156,6 +161,17 @@ impl TestResponse {
     pub async fn chunk_text(&mut self) -> Option<String> {
         let chunk = self.chunk().await?;
         Some(String::from_utf8(chunk.to_vec()).unwrap())
+    }
+
+    /// Get the inner [`reqwest::Response`] for less convenient but more complete access.
+    pub fn into_inner(self) -> reqwest::Response {
+        self.response
+    }
+}
+
+impl AsRef<reqwest::Response> for TestResponse {
+    fn as_ref(&self) -> &reqwest::Response {
+        &self.response
     }
 }
 
