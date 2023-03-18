@@ -26,3 +26,8 @@ hyper = "0.14.23"
 
 [dev-dependencies]
 tokio = { version = "1", features = ["full"] }
+
+[features]
+default = [ "withtrace" ]
+withtrace = []
+withouttrace = []
