@@ -28,6 +28,9 @@ impl TestClient {
     {
         let listener = TcpListener::bind("127.0.0.1:0").expect("Could not bind ephemeral socket");
         let addr = listener.local_addr().unwrap();
+        #[cfg(feature = "withouttrace")]
+        print!("");
+        #[cfg(feature = "withtrace")]
         println!("Listening on {}", addr);
 
         tokio::spawn(async move {

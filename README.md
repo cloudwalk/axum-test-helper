@@ -40,6 +40,10 @@ the [example directory][examples].
 
 See the [crate documentation][docs] for way more examples.
 
+## Disable trace
+
+By default axum-test-helper print trace like `Listening on 127.0.0.1:36457`. You can disable trace with `axum-test-helper = { version = "0.*", default-features = false, features = ["withouttrace"] }`.
+
 ## License
 
 This project is licensed under the [MIT license][license].
