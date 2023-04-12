@@ -2,15 +2,13 @@
 name = "axum-test-helper"
 version = "0.2.0"
 edition = "2021"
-categories = ["axum", "test", "web-testing"]
+categories = ["development-tools::testing"]
 description = "Extra utilities for axum"
 homepage = "https://github.com/cloudwalk/axum-test-helper"
 keywords = ["axum", "test", "test-framework"]
 license = "MIT"
 readme = "README.md"
 repository = "https://github.com/cloudwalk/axum-test-helper"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 axum = "0.6"
@@ -20,8 +18,8 @@ http-body = "0.4.5"
 bytes = "1.0"
 tower = "0.4.13"
 tower-service = "0.3"
-serde = { version = "1.0.136", features = ["derive"] }
-tokio = { version = "1" }
+serde = "1.0.136"
+tokio = "1"
 hyper = "0.14.23"
 
 [dev-dependencies]
