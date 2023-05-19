@@ -23,9 +23,10 @@ tokio = "1"
 hyper = "0.14.23"
 
 [dev-dependencies]
+serde = { version = "1", features = ["serde_derive"] }
 tokio = { version = "1", features = ["full"] }
 
 [features]
-default = [ "withtrace" ]
+default = ["withtrace"]
 withtrace = []
 withouttrace = []
