@@ -99,6 +99,11 @@ impl RequestBuilder {
         self
     }
 
+    pub fn form<T: serde::Serialize + ?Sized>(mut self, form: &T) -> Self {
+        self.builder = self.builder.form(&form);
+        self
+    }
+
     pub fn json<T>(mut self, json: &T) -> Self
     where
         T: serde::Serialize,
@@ -180,9 +185,20 @@ impl AsRef<reqwest::Response> for TestResponse {
 
 #[cfg(test)]
 mod tests {
-    use axum::routing::get;
+    use axum::response::Html;
+    use axum::routing::{get, post};
     use axum::Router;
     use http::StatusCode;
+    use serde::Deserialize;
+
+    #[derive(Deserialize)]
+    struct FooForm {
+        val: String,
+    }
+
+    async fn handle_form(axum::Form(form): axum::Form<FooForm>) -> (StatusCode, Html<String>) {
+        (StatusCode::OK, Html(form.val))
+    }
 
     #[tokio::test]
     async fn test_get_request() {
@@ -190,5 +206,15 @@ mod tests {
         let client = super::TestClient::new(app);
         let res = client.get("/").send().await;
         assert_eq!(res.status(), StatusCode::OK);
+    }
+
+    #[tokio::test]
+    async fn test_post_form_request() {
+        let app = Router::new().route("/", post(handle_form));
+        let client = super::TestClient::new(app);
+        let form = [("val", "bar"), ("baz", "quux")];
+        let res = client.post("/").form(&form).send().await;
+        assert_eq!(res.status(), StatusCode::OK);
+        assert_eq!(res.text().await, "bar");
     }
 }
