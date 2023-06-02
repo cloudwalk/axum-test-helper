@@ -38,6 +38,14 @@ impl TestClient {
             server.await.expect("server error");
         });
 
+        #[cfg(feature = "cookies")]
+        let client = reqwest::Client::builder()
+            .redirect(reqwest::redirect::Policy::none())
+            .cookie_store(true)
+            .build()
+            .unwrap();
+
+        #[cfg(not(feature = "cookies"))]
         let client = reqwest::Client::builder()
             .redirect(reqwest::redirect::Policy::none())
             .build()

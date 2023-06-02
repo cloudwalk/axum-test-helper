@@ -28,5 +28,6 @@ tokio = { version = "1", features = ["full"] }
 
 [features]
 default = ["withtrace"]
+cookies = ["reqwest/cookies"]
 withtrace = []
 withouttrace = []
