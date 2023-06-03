@@ -1,4 +1,25 @@
-/// this is a hard copy from TestClient at axum
+//! # Axum Test Helper
+//! This is a hard copy from TestClient at axum
+//!
+//! ## Features
+//! - `cookies` - Enables support for cookies in the test client.
+//! - `withouttrace` - Disables tracing for the test client.
+//!
+//! ## Example
+//! ```rust
+//! use axum::Router;
+//! use axum::http::StatusCode;
+//! use axum_test_helper::TestClient;
+//!
+//! // you can replace this Router with your own app
+//! let app = Router::new().route("/", get(|| async {}));
+//!
+//! // initiate the TestClient with the previous declared Router
+//! let client = TestClient::new(app);
+//! let res = client.get("/").send().await;
+//! assert_eq!(res.status(), StatusCode::OK);
+//! ```
+
 use axum::{body::HttpBody, BoxError};
 use bytes::Bytes;
 use http::{
