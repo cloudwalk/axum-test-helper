@@ -75,6 +75,14 @@ impl TestClient {
         TestClient { client, addr }
     }
 
+    /// returns the base URL (http://ip:port) for this TestClient
+    ///
+    /// this is useful when trying to check if Location headers in responses
+    /// are generated correctly as Location contains an absolute URL
+    pub fn base_url(&self) -> String {
+        format!("http://{}", self.addr)
+    }
+
     pub fn get(&self, url: &str) -> RequestBuilder {
         RequestBuilder {
             builder: self.client.get(format!("http://{}{}", self.addr, url)),
