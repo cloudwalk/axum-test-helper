@@ -180,6 +180,7 @@ impl TestResponse {
         self.response.text().await.unwrap()
     }
 
+    #[allow(dead_code)]
     pub async fn bytes(self) -> Bytes {
         self.response.bytes().await.unwrap()
     }

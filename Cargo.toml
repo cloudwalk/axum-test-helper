@@ -12,15 +12,15 @@ repository = "https://github.com/cloudwalk/axum-test-helper"
 
 [dependencies]
 axum = "0.6"
-reqwest = { version = "0.11", features = ["json", "stream", "multipart"], default-features = false }
-http = "0.2.8"
-http-body = "0.4.5"
-bytes = "1.0"
+reqwest = { version = "0.11", features = ["json", "stream", "multipart", "rustls-tls"], default-features = false }
+http = "0.2"
+http-body = "0.4"
+bytes = "1.4.0"
 tower = "0.4.13"
 tower-service = "0.3"
-serde = "1.0.136"
+serde = "1.0"
 tokio = "1"
-hyper = "0.14.23"
+hyper = "0.14"
 
 [dev-dependencies]
 serde = { version = "1", features = ["serde_derive"] }
