@@ -44,6 +44,20 @@ See the [crate documentation][docs] for way more examples.
 
 By default axum-test-helper print trace like `Listening on 127.0.0.1:36457`. You can disable trace with `axum-test-helper = { version = "0.*", default-features = false, features = ["withouttrace"] }`.
 
+## Contributing
+
+Before submitting a pull request or after pulling from the main repository, ensure all tests pass:
+
+``` shell
+cargo test
+# Run axum-test-helper tests
+cargo test
+
+# Test the hello-world example project
+(cd examples/hello-world && cargo test)
+```
+
+
 ## License
 
 This project is licensed under the [MIT license][license].
