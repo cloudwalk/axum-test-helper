@@ -1,8 +1,8 @@
 [package]
 name = "axum-test-helper"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
-categories = ["axum", "test", "web-testing"]
+categories = ["development-tools::testing"]
 description = "Extra utilities for axum"
 homepage = "https://github.com/cloudwalk/axum-test-helper"
 keywords = ["axum", "test", "test-framework"]
@@ -10,19 +10,24 @@ license = "MIT"
 readme = "README.md"
 repository = "https://github.com/cloudwalk/axum-test-helper"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
-axum = "0.6.6"
-reqwest = { version = "0.11.14", features = ["json", "stream", "multipart", "rustls-tls"], default-features = false }
-http = "0.2.8"
-http-body = "0.4.5"
+axum = "0.6"
+reqwest = { version = "0.11", features = ["json", "stream", "multipart", "rustls-tls"], default-features = false }
+http = "0.2"
+http-body = "0.4"
 bytes = "1.4.0"
 tower = "0.4.13"
-tower-service = "0.3.2"
-serde = { version = "1.0.152", features = ["derive"] }
-tokio = { version = "1.25.0" }
-hyper = "0.14.24"
+tower-service = "0.3"
+serde = "1.0"
+tokio = "1"
+hyper = "0.14"
 
 [dev-dependencies]
-tokio = { version = "1.0.152", features = ["full"] }
+serde = { version = "1", features = ["serde_derive"] }
+tokio = { version = "1", features = ["full"] }
+
+[features]
+default = ["withtrace"]
+cookies = ["reqwest/cookies"]
+withtrace = []
+withouttrace = []

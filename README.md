@@ -16,7 +16,7 @@ Add this crate as a dev-dependency:
 
 ```
 [dev-dependencies]
-axum-test-helper = "0.*" # alternatively specify the version as "0.2.0"
+axum-test-helper = "0.*" # alternatively specify the version as "0.3.0"
 ```
 
 Use the TestClient on your own Router:
@@ -39,6 +39,10 @@ You can find examples like this in
 the [example directory][examples].
 
 See the [crate documentation][docs] for way more examples.
+
+## Disable trace
+
+By default axum-test-helper print trace like `Listening on 127.0.0.1:36457`. You can disable trace with `axum-test-helper = { version = "0.*", default-features = false, features = ["withouttrace"] }`.
 
 ## License
 

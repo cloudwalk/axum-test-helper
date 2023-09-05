@@ -1,4 +1,25 @@
-/// this is a hard copy from TestClient at axum
+//! # Axum Test Helper
+//! This is a hard copy from TestClient at axum
+//!
+//! ## Features
+//! - `cookies` - Enables support for cookies in the test client.
+//! - `withouttrace` - Disables tracing for the test client.
+//!
+//! ## Example
+//! ```rust
+//! use axum::Router;
+//! use axum::http::StatusCode;
+//! use axum_test_helper::TestClient;
+//!
+//! // you can replace this Router with your own app
+//! let app = Router::new().route("/", get(|| async {}));
+//!
+//! // initiate the TestClient with the previous declared Router
+//! let client = TestClient::new(app);
+//! let res = client.get("/").send().await;
+//! assert_eq!(res.status(), StatusCode::OK);
+//! ```
+
 use axum::{body::HttpBody, BoxError};
 use bytes::Bytes;
 use http::{
@@ -28,6 +49,9 @@ impl TestClient {
     {
         let listener = TcpListener::bind("127.0.0.1:0").expect("Could not bind ephemeral socket");
         let addr = listener.local_addr().unwrap();
+        #[cfg(feature = "withouttrace")]
+        print!("");
+        #[cfg(feature = "withtrace")]
         println!("Listening on {}", addr);
 
         tokio::spawn(async move {
@@ -35,6 +59,14 @@ impl TestClient {
             server.await.expect("server error");
         });
 
+        #[cfg(feature = "cookies")]
+        let client = reqwest::Client::builder()
+            .redirect(reqwest::redirect::Policy::none())
+            .cookie_store(true)
+            .build()
+            .unwrap();
+
+        #[cfg(not(feature = "cookies"))]
         let client = reqwest::Client::builder()
             .redirect(reqwest::redirect::Policy::none())
             .build()
@@ -43,42 +75,44 @@ impl TestClient {
         TestClient { client, addr }
     }
 
-    #[allow(dead_code)]
+    /// returns the base URL (http://ip:port) for this TestClient
+    ///
+    /// this is useful when trying to check if Location headers in responses
+    /// are generated correctly as Location contains an absolute URL
+    pub fn base_url(&self) -> String {
+        format!("http://{}", self.addr)
+    }
+
     pub fn get(&self, url: &str) -> RequestBuilder {
         RequestBuilder {
             builder: self.client.get(format!("http://{}{}", self.addr, url)),
         }
     }
 
-    #[allow(dead_code)]
     pub fn head(&self, url: &str) -> RequestBuilder {
         RequestBuilder {
             builder: self.client.head(format!("http://{}{}", self.addr, url)),
         }
     }
 
-    #[allow(dead_code)]
     pub fn post(&self, url: &str) -> RequestBuilder {
         RequestBuilder {
             builder: self.client.post(format!("http://{}{}", self.addr, url)),
         }
     }
 
-    #[allow(dead_code)]
     pub fn put(&self, url: &str) -> RequestBuilder {
         RequestBuilder {
             builder: self.client.put(format!("http://{}{}", self.addr, url)),
         }
     }
 
-    #[allow(dead_code)]
     pub fn patch(&self, url: &str) -> RequestBuilder {
         RequestBuilder {
             builder: self.client.patch(format!("http://{}{}", self.addr, url)),
         }
     }
 
-    #[allow(dead_code)]
     pub fn delete(&self, url: &str) -> RequestBuilder {
         RequestBuilder {
             builder: self.client.delete(format!("http://{}{}", self.addr, url)),
@@ -86,26 +120,27 @@ impl TestClient {
     }
 }
 
-#[allow(dead_code)]
 pub struct RequestBuilder {
     builder: reqwest::RequestBuilder,
 }
 
 impl RequestBuilder {
-    #[allow(dead_code)]
     pub async fn send(self) -> TestResponse {
         TestResponse {
             response: self.builder.send().await.unwrap(),
         }
     }
 
-    #[allow(dead_code)]
     pub fn body(mut self, body: impl Into<reqwest::Body>) -> Self {
         self.builder = self.builder.body(body);
         self
     }
 
-    #[allow(dead_code)]
+    pub fn form<T: serde::Serialize + ?Sized>(mut self, form: &T) -> Self {
+        self.builder = self.builder.form(&form);
+        self
+    }
+
     pub fn json<T>(mut self, json: &T) -> Self
     where
         T: serde::Serialize,
@@ -114,7 +149,6 @@ impl RequestBuilder {
         self
     }
 
-    #[allow(dead_code)]
     pub fn header<K, V>(mut self, key: K, value: V) -> Self
     where
         HeaderName: TryFrom<K>,
@@ -126,20 +160,22 @@ impl RequestBuilder {
         self
     }
 
-    #[allow(dead_code)]
     pub fn multipart(mut self, form: reqwest::multipart::Form) -> Self {
         self.builder = self.builder.multipart(form);
         self
     }
 }
 
-#[allow(dead_code)]
+/// A wrapper around [`reqwest::Response`] that provides common methods with internal `unwrap()`s.
+///
+/// This is conventient for tests where panics are what you want. For access to
+/// non-panicking versions or the complete `Response` API use `into_inner()` or
+/// `as_ref()`.
 pub struct TestResponse {
     response: reqwest::Response,
 }
 
 impl TestResponse {
-    #[allow(dead_code)]
     pub async fn text(self) -> String {
         self.response.text().await.unwrap()
     }
@@ -149,7 +185,6 @@ impl TestResponse {
         self.response.bytes().await.unwrap()
     }
 
-    #[allow(dead_code)]
     pub async fn json<T>(self) -> T
     where
         T: serde::de::DeserializeOwned,
@@ -157,33 +192,51 @@ impl TestResponse {
         self.response.json().await.unwrap()
     }
 
-    #[allow(dead_code)]
     pub fn status(&self) -> StatusCode {
         self.response.status()
     }
 
-    #[allow(dead_code)]
     pub fn headers(&self) -> &http::HeaderMap {
         self.response.headers()
     }
 
-    #[allow(dead_code)]
     pub async fn chunk(&mut self) -> Option<Bytes> {
         self.response.chunk().await.unwrap()
     }
 
-    #[allow(dead_code)]
     pub async fn chunk_text(&mut self) -> Option<String> {
         let chunk = self.chunk().await?;
         Some(String::from_utf8(chunk.to_vec()).unwrap())
+    }
+
+    /// Get the inner [`reqwest::Response`] for less convenient but more complete access.
+    pub fn into_inner(self) -> reqwest::Response {
+        self.response
+    }
+}
+
+impl AsRef<reqwest::Response> for TestResponse {
+    fn as_ref(&self) -> &reqwest::Response {
+        &self.response
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use axum::routing::get;
+    use axum::response::Html;
+    use axum::routing::{get, post};
     use axum::Router;
     use http::StatusCode;
+    use serde::Deserialize;
+
+    #[derive(Deserialize)]
+    struct FooForm {
+        val: String,
+    }
+
+    async fn handle_form(axum::Form(form): axum::Form<FooForm>) -> (StatusCode, Html<String>) {
+        (StatusCode::OK, Html(form.val))
+    }
 
     #[tokio::test]
     async fn test_get_request() {
@@ -191,5 +244,15 @@ mod tests {
         let client = super::TestClient::new(app);
         let res = client.get("/").send().await;
         assert_eq!(res.status(), StatusCode::OK);
+    }
+
+    #[tokio::test]
+    async fn test_post_form_request() {
+        let app = Router::new().route("/", post(handle_form));
+        let client = super::TestClient::new(app);
+        let form = [("val", "bar"), ("baz", "quux")];
+        let res = client.post("/").form(&form).send().await;
+        assert_eq!(res.status(), StatusCode::OK);
+        assert_eq!(res.text().await, "bar");
     }
 }
