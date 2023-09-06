@@ -64,8 +64,6 @@ impl TestClient {
     {
         let listener = TcpListener::bind("127.0.0.1:0").expect("Could not bind ephemeral socket");
         let addr = listener.local_addr().unwrap();
-        #[cfg(feature = "withouttrace")]
-        print!("");
         #[cfg(feature = "withtrace")]
         println!("Listening on {}", addr);
 
@@ -239,12 +237,9 @@ impl AsRef<reqwest::Response> for TestResponse {
 #[cfg(test)]
 mod tests {
     use axum::response::Html;
-    use axum::routing::{get, post};
-    use axum::Router;
-    use http::StatusCode;
     use serde::{Deserialize, Serialize};
     use axum::{routing::get, routing::post, Router, Json};
-    use http::{StatusCode, header::{HeaderName, HeaderValue}};
+    use http::StatusCode;
 
     #[derive(Deserialize)]
     struct FooForm {
