@@ -49,7 +49,6 @@ By default axum-test-helper print trace like `Listening on 127.0.0.1:36457`. You
 Before submitting a pull request or after pulling from the main repository, ensure all tests pass:
 
 ``` shell
-cargo test
 # Run axum-test-helper tests
 cargo test
 
