@@ -9,16 +9,31 @@
 //! ```rust
 //! use axum::Router;
 //! use axum::http::StatusCode;
+//! use axum::routing::get;
 //! use axum_test_helper::TestClient;
 //!
-//! // you can replace this Router with your own app
-//! let app = Router::new().route("/", get(|| async {}));
+//! fn main() {
+//!     let async_block = async {
+//!         // you can replace this Router with your own app
+//!         let app = Router::new().route("/", get(|| async {}));
 //!
-//! // initiate the TestClient with the previous declared Router
-//! let client = TestClient::new(app);
-//! let res = client.get("/").send().await;
-//! assert_eq!(res.status(), StatusCode::OK);
-//! ```
+//!         // initiate the TestClient with the previous declared Router
+//!         let client = TestClient::new(app);
+//!
+//!         let res = client.get("/").send().await;
+//!         assert_eq!(res.status(), StatusCode::OK);
+//!     };
+//!
+//!     // Create a runtime for executing the async block. This runtime is local
+//!     // to the main function and does not require any global setup.
+//!     let runtime = tokio::runtime::Builder::new_current_thread()
+//!         .enable_all()
+//!         .build()
+//!         .unwrap();
+//!
+//!     // Use the local runtime to block on the async block.
+//!     runtime.block_on(async_block);
+//! }
 
 use axum::{body::HttpBody, BoxError};
 use bytes::Bytes;
@@ -73,6 +88,14 @@ impl TestClient {
             .unwrap();
 
         TestClient { client, addr }
+    }
+
+    /// returns the base URL (http://ip:port) for this TestClient
+    ///
+    /// this is useful when trying to check if Location headers in responses
+    /// are generated correctly as Location contains an absolute URL
+    pub fn base_url(&self) -> String {
+        format!("http://{}", self.addr)
     }
 
     pub fn get(&self, url: &str) -> RequestBuilder {
@@ -172,6 +195,7 @@ impl TestResponse {
         self.response.text().await.unwrap()
     }
 
+    #[allow(dead_code)]
     pub async fn bytes(self) -> Bytes {
         self.response.bytes().await.unwrap()
     }
