@@ -64,8 +64,6 @@ impl TestClient {
     {
         let listener = TcpListener::bind("127.0.0.1:0").expect("Could not bind ephemeral socket");
         let addr = listener.local_addr().unwrap();
-        #[cfg(feature = "withouttrace")]
-        print!("");
         #[cfg(feature = "withtrace")]
         println!("Listening on {}", addr);
 
@@ -239,10 +237,9 @@ impl AsRef<reqwest::Response> for TestResponse {
 #[cfg(test)]
 mod tests {
     use axum::response::Html;
-    use axum::routing::{get, post};
-    use axum::Router;
+    use serde::{Deserialize, Serialize};
+    use axum::{routing::get, routing::post, Router, Json};
     use http::StatusCode;
-    use serde::Deserialize;
 
     #[derive(Deserialize)]
     struct FooForm {
@@ -269,5 +266,29 @@ mod tests {
         let res = client.post("/").form(&form).send().await;
         assert_eq!(res.status(), StatusCode::OK);
         assert_eq!(res.text().await, "bar");
+    }
+
+    #[derive(Debug, Serialize, Deserialize, PartialEq)]
+    struct TestPayload {
+        name: String,
+        age: i32,
+    }
+
+    #[tokio::test]
+    async fn test_post_request_with_json() {
+        let app = Router::new().route("/", post(|json_value: Json<serde_json::Value>| async {json_value}));
+        let client = super::TestClient::new(app);
+        let payload = TestPayload {
+            name: "Alice".to_owned(),
+            age: 30,
+        };
+        let res = client.post("/")
+            .header("Content-Type", "application/json")
+            .json(&payload)
+            .send()
+            .await;
+        assert_eq!(res.status(), StatusCode::OK);
+        let response_body: TestPayload = serde_json::from_str(&res.text().await).unwrap();
+        assert_eq!(response_body, payload);
     }
 }
