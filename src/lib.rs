@@ -35,17 +35,10 @@
 //!     runtime.block_on(async_block);
 //! }
 
-use axum::{body::HttpBody, BoxError};
 use bytes::Bytes;
-use http::{
-    header::{HeaderName, HeaderValue},
-    Request, StatusCode,
-};
-use hyper::{Body, Server};
-use std::convert::TryFrom;
-use std::net::{SocketAddr, TcpListener};
-use tower::make::Shared;
-use tower_service::Service;
+use http::StatusCode;
+use std::net::SocketAddr;
+use tokio::net::TcpListener;
 
 pub struct TestClient {
     client: reqwest::Client,
@@ -53,22 +46,16 @@ pub struct TestClient {
 }
 
 impl TestClient {
-    pub fn new<S, ResBody>(svc: S) -> Self
-    where
-        S: Service<Request<Body>, Response = http::Response<ResBody>> + Clone + Send + 'static,
-        ResBody: HttpBody + Send + 'static,
-        ResBody::Data: Send,
-        ResBody::Error: Into<BoxError>,
-        S::Future: Send,
-        S::Error: Into<BoxError>,
-    {
-        let listener = TcpListener::bind("127.0.0.1:0").expect("Could not bind ephemeral socket");
+    pub async fn new(svc: axum::Router) -> Self {
+        let listener = TcpListener::bind("127.0.0.1:0")
+            .await
+            .expect("Could not bind ephemeral socket");
         let addr = listener.local_addr().unwrap();
         #[cfg(feature = "withtrace")]
         println!("Listening on {}", addr);
 
         tokio::spawn(async move {
-            let server = Server::from_tcp(listener).unwrap().serve(Shared::new(svc));
+            let server = axum::serve(listener, svc);
             server.await.expect("server error");
         });
 
@@ -162,13 +149,7 @@ impl RequestBuilder {
         self
     }
 
-    pub fn header<K, V>(mut self, key: K, value: V) -> Self
-    where
-        HeaderName: TryFrom<K>,
-        <HeaderName as TryFrom<K>>::Error: Into<http::Error>,
-        HeaderValue: TryFrom<V>,
-        <HeaderValue as TryFrom<V>>::Error: Into<http::Error>,
-    {
+    pub fn header(mut self, key: &str, value: &str) -> Self {
         self.builder = self.builder.header(key, value);
         self
     }
@@ -206,10 +187,10 @@ impl TestResponse {
     }
 
     pub fn status(&self) -> StatusCode {
-        self.response.status()
+        StatusCode::from_u16(self.response.status().as_u16()).unwrap()
     }
 
-    pub fn headers(&self) -> &http::HeaderMap {
+    pub fn headers(&self) -> &reqwest::header::HeaderMap {
         self.response.headers()
     }
 
@@ -237,9 +218,9 @@ impl AsRef<reqwest::Response> for TestResponse {
 #[cfg(test)]
 mod tests {
     use axum::response::Html;
-    use serde::{Deserialize, Serialize};
-    use axum::{routing::get, routing::post, Router, Json};
+    use axum::{routing::get, routing::post, Json, Router};
     use http::StatusCode;
+    use serde::{Deserialize, Serialize};
 
     #[derive(Deserialize)]
     struct FooForm {
@@ -253,7 +234,7 @@ mod tests {
     #[tokio::test]
     async fn test_get_request() {
         let app = Router::new().route("/", get(|| async {}));
-        let client = super::TestClient::new(app);
+        let client = super::TestClient::new(app).await;
         let res = client.get("/").send().await;
         assert_eq!(res.status(), StatusCode::OK);
     }
@@ -261,7 +242,7 @@ mod tests {
     #[tokio::test]
     async fn test_post_form_request() {
         let app = Router::new().route("/", post(handle_form));
-        let client = super::TestClient::new(app);
+        let client = super::TestClient::new(app).await;
         let form = [("val", "bar"), ("baz", "quux")];
         let res = client.post("/").form(&form).send().await;
         assert_eq!(res.status(), StatusCode::OK);
@@ -276,13 +257,17 @@ mod tests {
 
     #[tokio::test]
     async fn test_post_request_with_json() {
-        let app = Router::new().route("/", post(|json_value: Json<serde_json::Value>| async {json_value}));
-        let client = super::TestClient::new(app);
+        let app = Router::new().route(
+            "/",
+            post(|json_value: Json<serde_json::Value>| async { json_value }),
+        );
+        let client = super::TestClient::new(app).await;
         let payload = TestPayload {
             name: "Alice".to_owned(),
             age: 30,
         };
-        let res = client.post("/")
+        let res = client
+            .post("/")
             .header("Content-Type", "application/json")
             .json(&payload)
             .send()
