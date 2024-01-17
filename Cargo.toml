@@ -29,6 +29,6 @@ serde_json = "1.0"
 
 [features]
 default = ["withtrace"]
-cookies = []
+cookies = ["reqwest/cookies"]
 withtrace = []
 withouttrace = []
