@@ -190,9 +190,9 @@ impl TestResponse {
         StatusCode::from_u16(self.response.status().as_u16()).unwrap()
     }
 
-    // pub fn headers(&self) -> &http::HeaderMap {
-    //     self.response.headers()
-    // }
+    pub fn headers(&self) -> &reqwest::header::HeaderMap {
+        self.response.headers()
+    }
 
     pub async fn chunk(&mut self) -> Option<Bytes> {
         self.response.chunk().await.unwrap()
