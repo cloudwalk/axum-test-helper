@@ -11,16 +11,16 @@ readme = "README.md"
 repository = "https://github.com/cloudwalk/axum-test-helper"
 
 [dependencies]
-axum = "0.6"
-reqwest = { version = "0.11", features = ["json", "stream", "multipart", "rustls-tls"], default-features = false }
-http = "0.2"
+axum = "0.7"
 http-body = "0.4"
 bytes = "1.4.0"
 tower = "0.4.13"
 tower-service = "0.3"
 serde = "1.0"
 tokio = "1"
-hyper = "0.14"
+hyper = "1"
+http = "1.0.0"
+reqwest = { version = "0.11.23", features = ["json", "multipart"] }
 
 [dev-dependencies]
 serde = { version = "1", features = ["serde_derive"] }
@@ -29,6 +29,6 @@ serde_json = "1.0"
 
 [features]
 default = ["withtrace"]
-cookies = ["reqwest/cookies"]
+cookies = []
 withtrace = []
 withouttrace = []
