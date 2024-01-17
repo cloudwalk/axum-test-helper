@@ -218,12 +218,7 @@ impl AsRef<reqwest::Response> for TestResponse {
 #[cfg(test)]
 mod tests {
     use axum::response::Html;
-    use axum::{
-        response::{IntoResponse, Response},
-        routing::get,
-        routing::post,
-        Json, Router,
-    };
+    use axum::{routing::get, routing::post, Json, Router};
     use http::StatusCode;
     use serde::{Deserialize, Serialize};
 
@@ -232,8 +227,8 @@ mod tests {
         val: String,
     }
 
-    async fn handle_form(axum::Form(form): axum::Form<FooForm>) -> Response {
-        (StatusCode::OK, Html(form.val)).into_response()
+    async fn handle_form(axum::Form(form): axum::Form<FooForm>) -> (StatusCode, Html<String>) {
+        (StatusCode::OK, Html(form.val))
     }
 
     #[tokio::test]
