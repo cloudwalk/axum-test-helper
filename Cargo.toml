@@ -1,6 +1,6 @@
 [package]
 name = "axum-test-helper"
-version = "0.3.0"
+version = "0.4.0"
 edition = "2021"
 categories = ["development-tools::testing"]
 description = "Extra utilities for axum"
@@ -11,16 +11,16 @@ readme = "README.md"
 repository = "https://github.com/cloudwalk/axum-test-helper"
 
 [dependencies]
-axum = "0.6"
+axum = "0.7"
 reqwest = { version = "0.11", features = ["json", "stream", "multipart", "rustls-tls"], default-features = false }
-http = "0.2"
-http-body = "0.4"
-bytes = "1.4.0"
-tower = "0.4.13"
+http = "1.1"
+http-body = "1.0"
+bytes = "1.4"
+tower = "0.4"
 tower-service = "0.3"
 serde = "1.0"
 tokio = "1"
-hyper = "0.14"
+hyper = "1.0"
 
 [dev-dependencies]
 serde = { version = "1", features = ["serde_derive"] }

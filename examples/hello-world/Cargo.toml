@@ -5,6 +5,6 @@ edition = "2021"
 publish = false
 
 [dependencies]
-axum = { version = "0.6.*" }
-axum-test-helper = { version = "0.*" }
+axum = { version = "0.7" }
+axum-test-helper = { path = "../.." }
 tokio = { version = "1.0", features = ["full"] }
