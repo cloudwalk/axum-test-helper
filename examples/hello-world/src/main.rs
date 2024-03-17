@@ -6,6 +6,7 @@
 
 use axum::{response::Html, routing::get, Router};
 use std::net::SocketAddr;
+use tokio::net::TcpListener;
 
 #[tokio::main]
 async fn main() {
@@ -15,10 +16,9 @@ async fn main() {
     // run it
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
     println!("listening on {}", addr);
-    axum::Server::bind(&addr)
-        .serve(router.into_make_service())
-        .await
-        .unwrap();
+
+    let listener = TcpListener::bind(addr).await.unwrap();
+    axum::serve(listener, router.into_make_service()).await.unwrap();
 }
 
 fn router() -> Router {
