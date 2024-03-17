@@ -35,15 +35,17 @@
 //!     runtime.block_on(async_block);
 //! }
 
-use axum::{body::HttpBody, BoxError};
+use axum::serve;
 use bytes::Bytes;
 use http::{
     header::{HeaderName, HeaderValue},
-    Request, StatusCode,
+    StatusCode,
 };
-use hyper::{Body, Server};
-use std::convert::TryFrom;
+use std::convert::{Infallible, TryFrom};
 use std::net::{SocketAddr, TcpListener};
+use std::str::FromStr;
+use axum::extract::Request;
+use axum::response::Response;
 use tower::make::Shared;
 use tower_service::Service;
 
@@ -52,25 +54,36 @@ pub struct TestClient {
     addr: SocketAddr,
 }
 
-impl TestClient {
-    pub fn new<S, ResBody>(svc: S) -> Self
+pub(crate) fn spawn_service<S>(svc: S) -> SocketAddr
     where
-        S: Service<Request<Body>, Response = http::Response<ResBody>> + Clone + Send + 'static,
-        ResBody: HttpBody + Send + 'static,
-        ResBody::Data: Send,
-        ResBody::Error: Into<BoxError>,
+        S: Service<Request, Response = Response, Error = Infallible> + Clone + Send + 'static,
         S::Future: Send,
-        S::Error: Into<BoxError>,
-    {
-        let listener = TcpListener::bind("127.0.0.1:0").expect("Could not bind ephemeral socket");
-        let addr = listener.local_addr().unwrap();
-        #[cfg(feature = "withtrace")]
-        println!("Listening on {}", addr);
+{
+    let std_listener = TcpListener::bind("127.0.0.1:0").unwrap();
+    std_listener.set_nonblocking(true).unwrap();
+    let listener = tokio::net::TcpListener::from_std(std_listener).unwrap();
 
-        tokio::spawn(async move {
-            let server = Server::from_tcp(listener).unwrap().serve(Shared::new(svc));
-            server.await.expect("server error");
-        });
+    let addr = listener.local_addr().unwrap();
+
+    #[cfg(feature = "withtrace")]
+    println!("Listening on {addr}");
+
+    tokio::spawn(async move {
+        serve(listener, Shared::new(svc))
+            .await
+            .expect("server error")
+    });
+
+    addr
+}
+
+impl TestClient {
+    pub fn new<S>(svc: S) -> Self
+    where
+        S: Service<Request, Response = Response, Error = Infallible> + Clone + Send + 'static,
+        S::Future: Send,
+    {
+        let addr = spawn_service(svc);
 
         #[cfg(feature = "cookies")]
         let client = reqwest::Client::builder()
@@ -169,6 +182,13 @@ impl RequestBuilder {
         HeaderValue: TryFrom<V>,
         <HeaderValue as TryFrom<V>>::Error: Into<http::Error>,
     {
+        // reqwest still uses http 0.2
+        let key: HeaderName = key.try_into().map_err(Into::into).unwrap();
+        let key = reqwest::header::HeaderName::from_bytes(key.as_ref()).unwrap();
+
+        let value: HeaderValue = value.try_into().map_err(Into::into).unwrap();
+        let value = reqwest::header::HeaderValue::from_bytes(value.as_bytes()).unwrap();
+
         self.builder = self.builder.header(key, value);
         self
     }
@@ -206,11 +226,18 @@ impl TestResponse {
     }
 
     pub fn status(&self) -> StatusCode {
-        self.response.status()
+        StatusCode::from_u16(self.response.status().as_u16()).unwrap()
     }
 
-    pub fn headers(&self) -> &http::HeaderMap {
-        self.response.headers()
+    pub fn headers(&self) -> http::HeaderMap {
+        // reqwest still uses http 0.2 so have to convert into http 1.0
+        let mut headers = http::HeaderMap::new();
+        for (key, value) in self.response.headers() {
+            let key = HeaderName::from_str(key.as_str()).unwrap();
+            let value = HeaderValue::from_bytes(value.as_bytes()).unwrap();
+            headers.insert(key, value);
+        }
+        headers
     }
 
     pub async fn chunk(&mut self) -> Option<Bytes> {
