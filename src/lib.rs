@@ -6,35 +6,37 @@
 //! - `withouttrace` - Disables tracing for the test client.
 //!
 //! ## Example
+//!
 //! ```rust
 //! use axum::Router;
 //! use axum::http::StatusCode;
 //! use axum::routing::get;
 //! use axum_test_helper::TestClient;
 //!
-//! fn main() {
-//!     let async_block = async {
-//!         // you can replace this Router with your own app
-//!         let app = Router::new().route("/", get(|| async {}));
+//! let async_block = async {
+//!     // you can replace this Router with your own app
+//!     let app = Router::new().route("/", get(|| async {}));
 //!
-//!         // initiate the TestClient with the previous declared Router
-//!         let client = TestClient::new(app);
+//!     // initiate the TestClient with the previous declared Router
+//!     let client = TestClient::new(app);
 //!
-//!         let res = client.get("/").send().await;
-//!         assert_eq!(res.status(), StatusCode::OK);
-//!     };
+//!     let res = client.get("/").send().await;
+//!     assert_eq!(res.status(), StatusCode::OK);
+//! };
 //!
-//!     // Create a runtime for executing the async block. This runtime is local
-//!     // to the main function and does not require any global setup.
-//!     let runtime = tokio::runtime::Builder::new_current_thread()
-//!         .enable_all()
-//!         .build()
-//!         .unwrap();
+//! // Create a runtime for executing the async block. This runtime is local
+//! // to the main function and does not require any global setup.
+//! let runtime = tokio::runtime::Builder::new_current_thread()
+//!     .enable_all()
+//!     .build()
+//!     .unwrap();
 //!
-//!     // Use the local runtime to block on the async block.
-//!     runtime.block_on(async_block);
-//! }
+//! // Use the local runtime to block on the async block.
+//! runtime.block_on(async_block);
+//! ```
 
+use axum::extract::Request;
+use axum::response::Response;
 use axum::serve;
 use bytes::Bytes;
 use http::{
@@ -44,8 +46,6 @@ use http::{
 use std::convert::{Infallible, TryFrom};
 use std::net::{SocketAddr, TcpListener};
 use std::str::FromStr;
-use axum::extract::Request;
-use axum::response::Response;
 use tower::make::Shared;
 use tower_service::Service;
 
@@ -55,9 +55,9 @@ pub struct TestClient {
 }
 
 pub(crate) fn spawn_service<S>(svc: S) -> SocketAddr
-    where
-        S: Service<Request, Response = Response, Error = Infallible> + Clone + Send + 'static,
-        S::Future: Send,
+where
+    S: Service<Request, Response = Response, Error = Infallible> + Clone + Send + 'static,
+    S::Future: Send,
 {
     let std_listener = TcpListener::bind("127.0.0.1:0").unwrap();
     std_listener.set_nonblocking(true).unwrap();
@@ -264,9 +264,9 @@ impl AsRef<reqwest::Response> for TestResponse {
 #[cfg(test)]
 mod tests {
     use axum::response::Html;
-    use serde::{Deserialize, Serialize};
-    use axum::{routing::get, routing::post, Router, Json};
+    use axum::{routing::get, routing::post, Json, Router};
     use http::StatusCode;
+    use serde::{Deserialize, Serialize};
 
     #[derive(Deserialize)]
     struct FooForm {
@@ -303,13 +303,17 @@ mod tests {
 
     #[tokio::test]
     async fn test_post_request_with_json() {
-        let app = Router::new().route("/", post(|json_value: Json<serde_json::Value>| async {json_value}));
+        let app = Router::new().route(
+            "/",
+            post(|json_value: Json<serde_json::Value>| async { json_value }),
+        );
         let client = super::TestClient::new(app);
         let payload = TestPayload {
             name: "Alice".to_owned(),
             age: 30,
         };
-        let res = client.post("/")
+        let res = client
+            .post("/")
             .header("Content-Type", "application/json")
             .json(&payload)
             .send()
