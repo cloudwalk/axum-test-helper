@@ -39,8 +39,18 @@ jobs:
       - run: cargo build --workspace --all-features --tests --examples --benches
       - name: Run tests
         run: cargo test --workspace -- --nocapture
-      - name: Run benches
-        run: cargo bench --workspace -- --test
+
+  examples:
+    name: Validate examples
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo build --workspace --all-features --tests --examples --benches
+        working-directory: examples/hello-world
+      - name: Run tests
+        run: cargo test --workspace -- --nocapture
+        working-directory: examples/hello-world
 
   required:
     name: Required
@@ -48,7 +58,7 @@ jobs:
     if: ${{ always() }}
     needs:
       - check
-      - failpoints
+      - examples
       - test
     steps:
       - name: Guardian
@@ -56,6 +66,7 @@ jobs:
           if [[ ! ( \
                  "${{ needs.check.result }}" == "success" \
               && "${{ needs.test.result }}" == "success" \
+              && "${{ needs.examples.result }}" == "success" \
               ) ]]; then
             echo "Required jobs haven't been completed successfully."
             exit -1
