@@ -6,7 +6,7 @@ More information about this crate can be found in the [crate documentation][docs
 
 ## High level features
 
-- Provide an easy to use interface
+- Provide an easy-to-use interface
 - Start a server in a different port for each call
 - Deal with JSON, text and files response/requests
 
@@ -16,7 +16,7 @@ Add this crate as a dev-dependency:
 
 ```
 [dev-dependencies]
-axum-test-helper = "0.*" # alternatively specify the version as "0.3.0"
+axum-test-helper = "0.4"
 ```
 
 Use the TestClient on your own Router:
