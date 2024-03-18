@@ -38,6 +38,7 @@
 use axum::extract::Request;
 use axum::response::Response;
 use axum::serve;
+use axum::ServiceExt;
 use bytes::Bytes;
 use http::{
     header::{HeaderName, HeaderValue},
@@ -46,7 +47,6 @@ use http::{
 use std::convert::{Infallible, TryFrom};
 use std::net::{SocketAddr, TcpListener};
 use std::str::FromStr;
-use tower::make::Shared;
 use tower_service::Service;
 
 pub struct TestClient {
@@ -69,9 +69,12 @@ where
     println!("Listening on {addr}");
 
     tokio::spawn(async move {
-        serve(listener, Shared::new(svc))
-            .await
-            .expect("server error")
+        serve(
+            listener,
+            svc.into_make_service_with_connect_info::<SocketAddr>(),
+        )
+        .await
+        .expect("server error")
     });
 
     addr
