@@ -6,5 +6,5 @@ publish = false
 
 [dependencies]
 axum = { version = "0.6.*" }
-axum-test-helper = { version = "0.*" }
-tokio = { version = "1.0", features = ["full"] }
+axum-test-helper = { version = "=0.4.0" }
+tokio = { version = "=1.53.1", features = ["full"] }
