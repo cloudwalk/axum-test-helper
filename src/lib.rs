@@ -162,7 +162,7 @@ impl RequestBuilder {
 
 /// A wrapper around [`reqwest::Response`] that provides common methods with internal `unwrap()`s.
 ///
-/// This is conventient for tests where panics are what you want. For access to
+/// This is convenient for tests where panics are what you want. For access to
 /// non-panicking versions or the complete `Response` API use `into_inner()` or
 /// `as_ref()`.
 pub struct TestResponse {
